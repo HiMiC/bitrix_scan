@@ -1,0 +1,6 @@
+bitrix_server_test.php
+bitrix_server_test.php?session_test=Y
+bitrixsetup.php
+bitrix_test_exec.php
+bitrix_htaccess_test/test_file.php
+bitrix/updates/sysserver.php

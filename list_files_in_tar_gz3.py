@@ -6,22 +6,10 @@ import os
 def get_tar_gz_files(directory):
     tar_gz_files = []
     for filename in os.listdir(directory):
-        if filename.endswith('.tar.gz'):
-            tar_gz_files.append(os.path.join(directory, filename))
+        tar_gz_files.append(os.path.join(directory, filename))
     return tar_gz_files
 
 
-def list_php_files_in_tar_gz(tar_gz_file):
-    php_files = []
-    try:
-        with tarfile.open(tar_gz_file, 'r:gz') as tar:
-            for member in tar.getmembers():
-                if member.name.endswith('.php'):
-                    php_files.append(member.name)
-            return php_files
-    except Exception as e:
-        print(f"Ошибка при открытии {tar_gz_file}: {e}")
-        return []
 
 
 def save_to_json(file_list, json_file):
@@ -35,47 +23,41 @@ def save_to_json(file_list, json_file):
 
 def compare_json_files(json_file1, json_file2):
     try:
+        # Загружаем данные из JSON-файлов
         with open(json_file1) as f1, open(json_file2) as f2:
             data1 = json.load(f1)
             data2 = json.load(f2)
-            return data1 == data2
+
+            # Преобразуем списки в множества для удобного сравнения
+            set1 = set(data1)
+            set2 = set(data2)
+
+            # Находим элементы, которые есть только в первом и только во втором файле
+            only_in_file1 = set1 - set2
+            only_in_file2 = set2 - set1
+
+            return only_in_file1, only_in_file2
     except Exception as e:
         print(f"Ошибка при сравнении файлов: {e}")
-        return False
+        return None, None
 
 
 # Пример использования
-uploads_directory = 'uploads'
 uploads_sources_directory_list = 'uploads_sources_list'
 
 os.makedirs(uploads_sources_directory_list, exist_ok=True)
 
 # Получаем список файлов .tar.gz
-tar_gz_files = get_tar_gz_files(uploads_directory)
+tar_gz_files = get_tar_gz_files(uploads_sources_directory_list)
 
 # Выводим найденные файлы и обрабатываем их
-print("Найденные файлы .tar.gz:")
-for file_path in tar_gz_files:
-    print(file_path)
-
-    # Извлекаем имя файла без расширения
-    file_name2 = os.path.splitext(os.path.basename(file_path))[0]
-    file_name = os.path.splitext(os.path.basename(file_name2))[0]
-
-    json_file_path = os.path.join(uploads_sources_directory_list, f'{file_name}.json')
-
-    # Получаем список PHP-файлов из архива и сохраняем в JSON
-    php_files = list_php_files_in_tar_gz(file_path)
-    print ("Фаилов:" + str(len(php_files)))
-    save_to_json(php_files, json_file_path)
+print(tar_gz_files)
 
 # Пример сравнения двух JSON-файлов
 if len(tar_gz_files) >= 2:
-    json_file1 = os.path.join(uploads_sources_directory_list,
-                              os.path.splitext(os.path.splitext(os.path.basename(tar_gz_files[0]))[0])[0] + '.json')
+    json_file1 = tar_gz_files[0]
     print(json_file1)
-    json_file2 = os.path.join(uploads_sources_directory_list,
-                              os.path.splitext(os.path.splitext(os.path.basename(tar_gz_files[1]))[0])[0] + '.json')
+    json_file2 = tar_gz_files[1]
     print(json_file2)
     only_in_file1, only_in_file2 = compare_json_files(json_file1, json_file2)
 
